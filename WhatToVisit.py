@@ -3,6 +3,9 @@ import multiprocessing
 import reactivex
 from reactivex.scheduler import ThreadPoolScheduler
 from reactivex import operators as ops, Subject
+apikey1 = "6cbf889c-9cf7-467c-8697-4618a410968b"
+apikey2 = "11eae46ab12978396655f0cdc63b3777"
+apikey3 = "5ae2e3f221c38a28845f05b6fee4fb8a2ef7c45e1adaf24cdc80886c"
 
 
 class Data:
@@ -33,7 +36,11 @@ class Data:
                 pass
 
     def set_location(self, number):
-        self.lat, self.lng = self.coords[int(number)]
+        try:
+            self.lat, self.lng = self.coords[int(number) - 1]
+            return 0
+        except Exception:
+            return 1
 
     def get_weather(self, request):
         reactivex.of(request).pipe(
@@ -74,10 +81,11 @@ class Data:
         try:
             return text['wikipedia_extracts']['text']
         except Exception:
-            return "(No description)"
+            return "(Нет описания)"
 
     def parse_description(self, resp):
         names, xids, request = resp
+        print("Места:")
         reactivex.of(*xids).pipe(
             ops.map(lambda s: (names[xids.index(s)], self.get_description(get_response(request[0] + s + request[1]))))
         ).subscribe(
@@ -88,11 +96,11 @@ class Data:
 
     def print_locations(self):
         for i in range(len(self.locations)):
-            print(self.locations[i], "\n----------")
+            print("Номер", i + 1, ":", self.locations[i], "\n----------")
 
     def print_weather(self, resp):
-        print("Weather:", resp[0], "\ntemperature =", resp[1], "\npressure =", resp[2],
-              "\nvisibility =", resp[3], "\nspeed of wind =", resp[4])
+        print("Погода:", resp[0], "\nТемпература =", resp[1], "(Градусов Цельсия)\nДавление =", resp[2],
+              "(гПа)\nВидимость =", resp[3], "(метров)\nСкорость ветра =", resp[4], "(м/сек)\n----------")
 
     def print_description(self, resp):
         name, description = resp
@@ -104,31 +112,32 @@ def get_response(request):
     if response:
         return response.json()
     else:
-        print("Error to get weather:")
+        print("Ошибка запроса:")
         print(request)
         print("Http status:", response.status_code, "(", response.reason, ")")
 
 
 def get_location(data):
-    data.response = get_response(f'https://graphhopper.com/api/1/geocode?q={input("Input location: ")}&locale=en&'
-                                 f'key=6cbf889c-9cf7-467c-8697-4618a410968b')
+    data.response = get_response(f'https://graphhopper.com/api/1/geocode?q={input("Введите название локации: ")}&lo'
+                                 f'cale=ru&key=' + apikey1)
     data.parse_locations()
     data.print_locations()
-    data.set_location(input("Input number of location: "))
+    return data.set_location(input("Введите номер локации: "))
 
 
 def get_info(data):
-    response1 = f'https://api.opentripmap.com/0.1/en/places/radius?lon={data.lng}&lat={data.lat}&form' \
-                f'at=json&radius=500&apikey=5ae2e3f221c38a28845f05b6fee4fb8a2ef7c45e1adaf24cdc80886c'
-    response2 = f'https://api.openweathermap.org/data/2.5/weather?lat={data.lat}&lon={data.lng}&appi' \
-                f'd=11eae46ab12978396655f0cdc63b3777'
-    response3 = ['https://api.opentripmap.com/0.1/en/places/xid/', '?format=json&radius=500&apikey=5ae2e3f221c38a28'
-                                                                   '845f05b6fee4fb8a2ef7c45e1adaf24cdc80886c']
+    response1 = f'https://api.opentripmap.com/0.1/ru/places/radius?lon={data.lng}&lat={data.lat}&form' \
+                f'at=json&radius=500&apikey=' + apikey3
+    response2 = f'https://api.openweathermap.org/data/2.5/weather?lat={data.lat}&lon={data.lng}&lang=ru&appi' \
+                f'd=' + apikey2
+    response3 = ['https://api.opentripmap.com/0.1/ru/places/xid/', '?format=json&radius=500&apikey=' + apikey3]
     data.get_weather(response2)
     data.get_place(response1, response3)
 
 
 if __name__ == "__main__":
     data = Data()
-    get_location(data)
-    get_info(data)
+    if get_location(data) == 0:
+        get_info(data)
+    else:
+        print("Не найдено")
