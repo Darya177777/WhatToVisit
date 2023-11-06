@@ -1,9 +1,11 @@
 # WhatToVisit
 App for getting information about intersting places
+
 This app use these API:
 1) graphhopper.com
 2) api.opentripmap.com
 3) api.openweathermap.org
+
 Example of using:
 python WhatToVisit.py (or WhatToVisit.exe)
 Next you need to enter name of place.
