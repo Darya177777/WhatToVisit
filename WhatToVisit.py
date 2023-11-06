@@ -99,8 +99,8 @@ class Data:
             print("Номер", i + 1, ":", self.locations[i], "\n----------")
 
     def print_weather(self, resp):
-        print("Погода:", resp[0], "\nТемпература =", resp[1], "(Градусов Цельсия)\nДавление =", resp[2],
-              "(гПа)\nВидимость =", resp[3], "(метров)\nСкорость ветра =", resp[4], "(м/сек)\n----------")
+        print("Погода:", resp[0], "\nТемпература =", resp[1], "(Градусов Цельсия)\nДавление =", int(resp[2]) * 0.75,
+              "(мм рт ст)\nВидимость =", resp[3], "(метров)\nСкорость ветра =", resp[4], "(м/сек)\n----------")
 
     def print_description(self, resp):
         name, description = resp
